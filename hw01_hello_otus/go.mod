@@ -1,4 +1,4 @@
-module main.go
+module github.com/frobbery/go_course/tree/master/hw01_hello_otus
 
 go 1.23.3
 
