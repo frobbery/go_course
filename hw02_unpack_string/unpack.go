@@ -18,10 +18,8 @@ func Unpack(s string) (string, error) {
 			prevRuneShielded = true
 		} else {
 			if repeatNum, err := strconv.ParseInt(string(currRune), 10, 32); !prevRuneShielded && err == nil {
-				if prevRuneNum || prevRune == 0 {
-					if !prevRuneShielded {
-						return "", ErrInvalidString
-					}
+				if !prevRuneShielded && (prevRuneNum || prevRune == 0) {
+					return "", ErrInvalidString
 				}
 				prevRuneNum = true
 				for i := int64(0); i < repeatNum; i++ {
