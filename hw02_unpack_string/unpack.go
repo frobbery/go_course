@@ -14,6 +14,7 @@ func Unpack(s string) (string, error) {
 	prevRuneNum := false
 	prevRuneShielded := false
 	for runeInd, currRune := range runes {
+		//nolint:nestif
 		if currRune == '\\' && !prevRuneShielded {
 			prevRuneShielded = true
 		} else {
@@ -29,7 +30,12 @@ func Unpack(s string) (string, error) {
 				if prevRuneShielded && err != nil && currRune != '\\' {
 					return "", ErrInvalidString
 				}
-				newRunes = appendRunesIfNeeded(prevRuneNum, prevRune, newRunes, runeInd, runes, currRune)
+				if !prevRuneNum && prevRune != 0 {
+					newRunes = append(newRunes, prevRune)
+				}
+				if runeInd == len(runes)-1 {
+					newRunes = append(newRunes, currRune)
+				}
 				prevRuneNum = false
 			}
 			prevRune = currRune
@@ -37,14 +43,4 @@ func Unpack(s string) (string, error) {
 		}
 	}
 	return string(newRunes), nil
-}
-
-func appendRunesIfNeeded(prevRuneNum bool, prevRune rune, newRunes []rune, runeInd int, runes []rune, currRune rune) ([]rune) {
-	if !prevRuneNum && prevRune != 0 {
-		newRunes = append(newRunes, prevRune)
-	}
-	if runeInd == len(runes)-1 {
-		newRunes = append(newRunes, currRune)
-	}
-	return newRunes
 }
