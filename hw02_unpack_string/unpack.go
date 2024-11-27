@@ -46,4 +46,5 @@ func appendRunesIfNeeded(prevRuneNum bool, prevRune rune, newRunes []rune, runeI
 	if runeInd == len(runes)-1 {
 		newRunes = append(newRunes, currRune)
 	}
+	return newRunes
 }
