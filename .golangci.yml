@@ -22,20 +22,7 @@ linters:
   disable-all: true
   enable:
     - asciicheck
-    - depguard:
-      rules:
-        Main:
-          files:
-            - $all
-            - "!$test"
-          allow:
-            - $gostd
-        Test:
-          files:
-            - $test
-          allow:
-            - $gostd
-            - github.com/stretchr/testify
+    - depguard
     - dogsled
     - dupl
     - bodyclose
