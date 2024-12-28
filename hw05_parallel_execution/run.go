@@ -9,78 +9,60 @@ var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
 
 type Task func() error
 
-type taskIndexLocked struct {
-	mu *sync.Mutex
-
-	taskIndex int
-
+type errorCount struct {
+	mu          *sync.Mutex
 	errorNumber int
-
-	err error
+	err         error
 }
 
 // Run starts tasks in n goroutines and stops its work when receiving m errors from tasks.
 
 func Run(tasks []Task, n, m int) error {
-	taskIndex := taskIndexLocked{
-		err: nil,
+	taskChan := make(chan Task, len(tasks))
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go addTasks(&taskChan, tasks, &wg)
 
-		mu: &sync.Mutex{},
-
-		taskIndex: 0,
-
+	errCount := errorCount{
+		err:         nil,
+		mu:          &sync.Mutex{},
 		errorNumber: 0,
 	}
 
-	wg := sync.WaitGroup{}
-
 	for i := 0; i < n; i++ {
 		wg.Add(1)
-
-		go doTasks(tasks, m, &wg, &taskIndex)
+		go doTasks(&taskChan, m, &wg, &errCount)
 	}
 
 	wg.Wait()
 
-	return taskIndex.err
+	return errCount.err
 }
 
-func doTasks(tasks []Task, maxErrorNumber int, wg *sync.WaitGroup, taskIndex *taskIndexLocked) {
+func addTasks(taskChan *chan Task, tasks []Task, wg *sync.WaitGroup) {
 	defer wg.Done()
-
-	currTaskIndex := getNextTaskIndex(taskIndex)
-
-	for currTaskIndex < len(tasks) {
-		task := tasks[currTaskIndex]
-
-		err := task()
-
-		if maxErrorNumber > 0 && err != nil {
-			taskIndex.mu.Lock()
-
-			taskIndex.errorNumber++
-
-			if taskIndex.errorNumber >= maxErrorNumber {
-				taskIndex.taskIndex = len(tasks)
-
-				taskIndex.err = ErrErrorsLimitExceeded
-			}
-
-			taskIndex.mu.Unlock()
-		}
-
-		currTaskIndex = getNextTaskIndex(taskIndex)
+	for i := 0; i < len(tasks); i++ {
+		*taskChan <- tasks[i]
 	}
+	close(*taskChan)
 }
 
-func getNextTaskIndex(taskIndex *taskIndexLocked) int {
-	taskIndex.mu.Lock()
-
-	index := taskIndex.taskIndex
-
-	taskIndex.taskIndex++
-
-	taskIndex.mu.Unlock()
-
-	return index
+func doTasks(taskChan *chan Task, maxErrorNumber int, wg *sync.WaitGroup, errCount *errorCount) {
+	defer wg.Done()
+	currentTask, ok := <-*taskChan
+	for ok {
+		if errCount.errorNumber < maxErrorNumber || maxErrorNumber <= 0 {
+			err := currentTask()
+			currentTask, ok = <-*taskChan
+			if maxErrorNumber > 0 && err != nil {
+				errCount.mu.Lock()
+				errCount.errorNumber++
+				if errCount.errorNumber >= maxErrorNumber {
+					errCount.err = ErrErrorsLimitExceeded
+					ok = false
+				}
+				errCount.mu.Unlock()
+			}
+		}
+	}
 }
