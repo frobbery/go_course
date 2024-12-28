@@ -51,7 +51,9 @@ func doTasks(taskChan *chan Task, maxErrorNumber int, wg *sync.WaitGroup, errCou
 	defer wg.Done()
 	currentTask, ok := <-*taskChan
 	for ok {
+		errCount.mu.Lock()
 		if errCount.errorNumber < maxErrorNumber || maxErrorNumber <= 0 {
+			errCount.mu.Unlock()
 			err := currentTask()
 			currentTask, ok = <-*taskChan
 			if maxErrorNumber > 0 && err != nil {
@@ -63,6 +65,8 @@ func doTasks(taskChan *chan Task, maxErrorNumber int, wg *sync.WaitGroup, errCou
 				}
 				errCount.mu.Unlock()
 			}
+		} else {
+			errCount.mu.Unlock()
 		}
 	}
 }
