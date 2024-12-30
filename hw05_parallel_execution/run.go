@@ -10,7 +10,7 @@ var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
 type Task func() error
 
 type errorCount struct {
-	mu          *sync.Mutex
+	mu          *sync.RWMutex
 	errorNumber int
 	err         error
 }
@@ -20,18 +20,18 @@ type errorCount struct {
 func Run(tasks []Task, n, m int) error {
 	taskChan := make(chan Task, len(tasks))
 	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go addTasks(&taskChan, tasks, &wg)
+
+	addTasks(taskChan, tasks)
 
 	errCount := errorCount{
 		err:         nil,
-		mu:          &sync.Mutex{},
+		mu:          &sync.RWMutex{},
 		errorNumber: 0,
 	}
 
 	for i := 0; i < n; i++ {
 		wg.Add(1)
-		go doTasks(&taskChan, m, &wg, &errCount)
+		go doTasks(taskChan, m, &wg, &errCount)
 	}
 
 	wg.Wait()
@@ -39,34 +39,35 @@ func Run(tasks []Task, n, m int) error {
 	return errCount.err
 }
 
-func addTasks(taskChan *chan Task, tasks []Task, wg *sync.WaitGroup) {
-	defer wg.Done()
+func addTasks(taskChan chan Task, tasks []Task) {
 	for i := 0; i < len(tasks); i++ {
-		*taskChan <- tasks[i]
+		taskChan <- tasks[i]
 	}
-	close(*taskChan)
+	close(taskChan)
 }
 
-func doTasks(taskChan *chan Task, maxErrorNumber int, wg *sync.WaitGroup, errCount *errorCount) {
+func doTasks(taskChan chan Task, maxErrorNumber int, wg *sync.WaitGroup, errCount *errorCount) {
 	defer wg.Done()
-	currentTask, ok := <-*taskChan
+	currentTask, ok := <-taskChan
 	for ok {
-		errCount.mu.Lock()
-		if errCount.errorNumber < maxErrorNumber || maxErrorNumber <= 0 {
-			errCount.mu.Unlock()
+		errCount.mu.RLock()
+		if errCount.errorNumber < maxErrorNumber || (errCount.errorNumber >= maxErrorNumber && maxErrorNumber <= 0) {
+			errCount.mu.RUnlock()
 			err := currentTask()
-			currentTask, ok = <-*taskChan
+			currentTask, ok = <-taskChan
 			if maxErrorNumber > 0 && err != nil {
 				errCount.mu.Lock()
 				errCount.errorNumber++
 				if errCount.errorNumber >= maxErrorNumber {
 					errCount.err = ErrErrorsLimitExceeded
-					ok = false
+					errCount.mu.Unlock()
+					return
 				}
 				errCount.mu.Unlock()
 			}
 		} else {
-			errCount.mu.Unlock()
+			errCount.mu.RUnlock()
+			return
 		}
 	}
 }
