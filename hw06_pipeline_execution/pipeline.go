@@ -1,5 +1,7 @@
 package hw06pipelineexecution
 
+import "sync"
+
 type (
 	In  = <-chan interface{}
 	Out = In
@@ -35,10 +37,15 @@ func subscribe(in In, done In, stage Stage, stageChannel Bi) {
 }
 
 func closeChannel(channel Bi) {
+	close(channel)
+	wg := sync.WaitGroup{}
+	wg.Add(1)
 	go func() {
 		for i := range channel {
 			_ = i
 		}
 	}()
-	close(channel)
+	go func() {
+		wg.Wait()
+	}()
 }
