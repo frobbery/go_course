@@ -23,7 +23,7 @@ func ExecutePipeline(in In, done In, stages ...Stage) Out {
 func subscribe(in In, done In, stage Stage, stageChannel Bi) {
 	outChannel := stage(in)
 	go func() {
-		defer close(stageChannel)
+		defer closeChannel(stageChannel)
 		for i := range outChannel {
 			select {
 			case <-done:
@@ -32,4 +32,13 @@ func subscribe(in In, done In, stage Stage, stageChannel Bi) {
 			}
 		}
 	}()
+}
+
+func closeChannel(channel Bi) {
+	go func() {
+		for i := range channel {
+			_ = i
+		}
+	}()
+	close(channel)
 }
