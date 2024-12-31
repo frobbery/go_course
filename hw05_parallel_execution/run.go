@@ -51,23 +51,22 @@ func doTasks(taskChan chan Task, maxErrorNumber int, wg *sync.WaitGroup, errCoun
 	currentTask, ok := <-taskChan
 	for ok {
 		errCount.mu.RLock()
-		if errCount.errorNumber < maxErrorNumber || (errCount.errorNumber >= maxErrorNumber && maxErrorNumber <= 0) {
-			errCount.mu.RUnlock()
-			err := currentTask()
-			currentTask, ok = <-taskChan
-			if maxErrorNumber > 0 && err != nil {
-				errCount.mu.Lock()
-				errCount.errorNumber++
-				if errCount.errorNumber >= maxErrorNumber {
-					errCount.err = ErrErrorsLimitExceeded
-					errCount.mu.Unlock()
-					return
-				}
-				errCount.mu.Unlock()
-			}
-		} else {
+		if errCount.errorNumber > maxErrorNumber && maxErrorNumber > 0 {
 			errCount.mu.RUnlock()
 			return
+		}
+		errCount.mu.RUnlock()
+		err := currentTask()
+		currentTask, ok = <-taskChan
+		if maxErrorNumber > 0 && err != nil {
+			errCount.mu.Lock()
+			errCount.errorNumber++
+			if errCount.errorNumber >= maxErrorNumber {
+				errCount.err = ErrErrorsLimitExceeded
+				errCount.mu.Unlock()
+				return
+			}
+			errCount.mu.Unlock()
 		}
 	}
 }
