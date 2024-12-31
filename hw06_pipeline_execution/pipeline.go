@@ -24,7 +24,7 @@ func subscribe(in In, done In, stage Stage, stageChannel Bi) {
 	outChannel := stage(in)
 	go func() {
 		doneFlag := false
-		defer closeChannel(stageChannel, doneFlag)
+		defer closeChannel(stageChannel, &doneFlag)
 		for i := range outChannel {
 			select {
 			case <-done:
@@ -36,9 +36,9 @@ func subscribe(in In, done In, stage Stage, stageChannel Bi) {
 	}()
 }
 
-func closeChannel(channel Bi, doneFlag bool) {
+func closeChannel(channel Bi, doneFlag *bool) {
 	close(channel)
-	if doneFlag {
+	if *doneFlag {
 		go func() {
 			for i := range channel {
 				_ = i
