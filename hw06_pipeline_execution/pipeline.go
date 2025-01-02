@@ -9,26 +9,32 @@ type (
 type Stage func(in In) (out Out)
 
 func ExecutePipeline(in In, done In, stages ...Stage) Out {
-	currStageChannel := in
+	stagesChannels := make([]Bi, len(stages))
 	for i := 0; i < len(stages); i++ {
-		tmpStageChannel := make(Bi)
-		go func(currStageChannel In) {
-			defer close(tmpStageChannel)
-			for i := range currStageChannel {
-				select {
-				case <-done:
-					go func() {
-						for i := range currStageChannel {
-							_ = i
-						}
-					}()
-					return
-				default:
-					tmpStageChannel <- i
-				}
-			}
-		}(currStageChannel)
-		currStageChannel = stages[i](tmpStageChannel)
+		stagesChannels[i] = make(Bi)
 	}
-	return currStageChannel
+	subscribe(in, done, stages[0], stagesChannels[0])
+	for i := 1; i < len(stages); i++ {
+		subscribe(stagesChannels[i-1], done, stages[i], stagesChannels[i])
+	}
+	return stagesChannels[len(stages)-1]
+}
+
+func subscribe(in In, done In, stage Stage, stageChannel Bi) {
+	outChannel := stage(in)
+	go func() {
+		defer close(stageChannel)
+		for i := range outChannel {
+			select {
+			case <-done:
+				go func() {
+					for i := range outChannel {
+						_ = i
+					}
+				}()
+				return
+			case stageChannel <- i:
+			}
+		}
+	}()
 }
