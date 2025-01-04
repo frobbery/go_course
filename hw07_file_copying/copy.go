@@ -17,7 +17,8 @@ type CopyBuffer struct {
 
 func (cb *CopyBuffer) initBuf(fileSize, limit, offset int64) {
 	var buf []byte
-	if fileSize < limit-offset || limit == 0 {
+
+	if fileSize-offset < limit || limit == 0 {
 		buf = make([]byte, fileSize-offset)
 	} else {
 		buf = make([]byte, limit)
