@@ -29,15 +29,15 @@ func makeNewEnv(env Environment) []string {
 	newEnv := make([]string, 0)
 	for _, val := range os.Environ() {
 		keyVal := strings.Split(val, "=")
-		if newValue, ok := env[keyVal[0]]; ok {
-			if !newValue.NeedRemove {
-				newEnv = append(newEnv, keyVal[0]+"="+newValue.Value)
-			}
-		} else {
+		if _, ok := env[keyVal[0]]; !ok {
 			newEnv = append(newEnv, val)
-		}
+			//if !newValue.NeedRemove {
+			//	newEnv = append(newEnv, keyVal[0]+"="+newValue.Value)
+			}
+		//} else {
+		//	newEnv = append(newEnv, val)
+		//}
 	}
-	_ = newEnv
 
-	return os.Environ()
+	return newEnv
 }
