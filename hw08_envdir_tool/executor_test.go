@@ -14,7 +14,8 @@ func TestRunCmd(t *testing.T) {
 
 		os.Setenv("UNSET", "unset")
 
-		cmd := []string{"echo", "$USER", "$UNSET", "$BAR", ">", "testdata/test.txt"}
+		cmd := []string{"go", "help", "$UNSET", "$BAR", ">", "testdata/test.txt"}
+		//cmd := []string{"echo", "$USER", "$UNSET", "$BAR", ">", "testdata/test.txt"}
 
 		environment := Environment{
 			"BAR": EnvValue{Value: "bar"},

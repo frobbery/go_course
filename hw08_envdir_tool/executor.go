@@ -11,13 +11,10 @@ import (
 
 func RunCmd(cmd []string, env Environment) (returnCode int) {
 	newEnv := makeNewEnv(env)
-	runCmd := exec.Cmd{
-		Path: cmd[0],
-		Args: cmd[1:],
-		Env: newEnv,
-		Stdin: os.Stdin,
-		Stdout: os.Stdout,
-	}
+	runCmd := exec.Command(cmd[0], cmd[1:]...)
+	runCmd.Env = newEnv
+	runCmd.Stdin = os.Stdin
+	runCmd.Stdout = os.Stdout
 
 	log.Println(newEnv)
 
