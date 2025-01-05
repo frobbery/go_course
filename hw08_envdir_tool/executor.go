@@ -33,9 +33,6 @@ func makeNewEnv(env Environment) []string {
 
 	for _, val := range os.Environ() {
 		keyVal := strings.Split(val, "=")
-		if len(keyVal) != 2 {
-			continue
-		}
 		if newValue, ok := env[keyVal[0]]; ok {
 			if !newValue.NeedRemove {
 				newEnv = append(newEnv, keyVal[0]+"="+newValue.Value)

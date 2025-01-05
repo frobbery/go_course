@@ -39,10 +39,12 @@ func ReadDir(dir string) (Environment, error) {
 				environment[dirEntry.Name()] = EnvValue{NeedRemove: true}
 			} else {
 				wholeString := string(tmpBuff)
-
 				value := strings.TrimSpace(strings.Split(wholeString, "\n")[0])
-
-				environment[dirEntry.Name()] = EnvValue{Value: value}
+				if (value != "") {
+					environment[dirEntry.Name()] = EnvValue{Value: value}
+				} else {
+					environment[dirEntry.Name()] = EnvValue{NeedRemove: true}
+				}
 			}
 		}
 	}

@@ -16,7 +16,7 @@ func TestReadDir(t *testing.T) {
 		expectedMap := Environment{
 			"BAR": EnvValue{Value: "bar"},
 
-			"EMPTY": EnvValue{Value: ""},
+			"EMPTY": EnvValue{NeedRemove: true},
 
 			"FOO": EnvValue{Value: "foo\x00with new line"},
 
