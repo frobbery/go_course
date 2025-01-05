@@ -27,9 +27,11 @@ func RunCmd(cmd []string, env Environment) (returnCode int) {
 
 func makeNewEnv(env Environment) []string {
 	newEnv := make([]string, 0)
-
 	for _, val := range os.Environ() {
 		keyVal := strings.Split(val, "=")
+		if (keyVal[1] == "") {
+			continue
+		}
 		if newValue, ok := env[keyVal[0]]; ok {
 			if !newValue.NeedRemove {
 				newEnv = append(newEnv, keyVal[0]+"="+newValue.Value)
