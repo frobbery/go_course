@@ -18,6 +18,8 @@ func TestCopy(t *testing.T) {
 
 		require.Equal(t, nil, err, "Error occurred while reading created")
 
+		os.Remove("testdata/out1.txt")
+
 		require.Equal(t, []byte("hello"), tmpBuff, "Written not expected")
 	})
 
@@ -30,6 +32,8 @@ func TestCopy(t *testing.T) {
 
 		require.Equal(t, nil, err, "Error occurred while reading created")
 
+		os.Remove("testdata/out2.txt")
+
 		require.Equal(t, []byte("el"), tmpBuff, "Written not expected")
 	})
 
@@ -41,6 +45,8 @@ func TestCopy(t *testing.T) {
 		tmpBuff, err := os.ReadFile("testdata/out3.txt")
 
 		require.Equal(t, nil, err, "Error occurred while reading created")
+
+		os.Remove("testdata/out3.txt")
 
 		require.Equal(t, []byte("ello"), tmpBuff, "Written not expected")
 	})

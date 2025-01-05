@@ -31,6 +31,7 @@ func (cb *CopyBuffer) readFrom(fromPath string, offset int64, limit int64) error
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 	if cb.buf == nil {
 		stats, err := file.Stat()
 		if err != nil {
@@ -50,6 +51,7 @@ func (cb *CopyBuffer) writeTo(toPath string) error {
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 	_, err = file.Write(*cb.buf)
 	if err != nil {
 		return err
