@@ -18,7 +18,7 @@ func TestReadDir(t *testing.T) {
 
 			"EMPTY": EnvValue{Value: ""},
 
-			"FOO": EnvValue{Value: "foo\nwith new line"},
+			"FOO": EnvValue{Value: "   foo\nwith new line"},
 
 			"HELLO": EnvValue{Value: "\"hello\""},
 
