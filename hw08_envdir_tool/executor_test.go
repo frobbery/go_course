@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	//nolint:depguard
-	"github.com/stretchr/testify/require"
+	//"github.com/stretchr/testify/require"
 )
 
 func TestRunCmd(t *testing.T) {
