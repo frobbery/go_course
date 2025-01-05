@@ -39,7 +39,7 @@ func makeNewEnv(env Environment) []string {
 				newEnv = append(newEnv, keyVal[0]+"="+newValue.Value)
 			}
 		} else {
-			newEnv = append(newEnv, keyVal...)
+			newEnv = append(newEnv, val)
 		}
 	}
 
