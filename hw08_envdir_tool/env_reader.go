@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strings"
 )
@@ -36,7 +35,6 @@ func ReadDir(dir string) (Environment, error) {
 			}
 
 			if len(tmpBuff) == 0 {
-				fmt.Println("Тут", dirEntry.Name())
 
 				environment[dirEntry.Name()] = EnvValue{NeedRemove: true}
 			} else {
@@ -48,8 +46,6 @@ func ReadDir(dir string) (Environment, error) {
 			}
 		}
 	}
-
-	fmt.Println(environment)
 
 	return environment, nil
 }
