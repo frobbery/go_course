@@ -1,7 +1,30 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	//nolint:depguard
+	"github.com/stretchr/testify/require"
+)
 
 func TestReadDir(t *testing.T) {
-	// Place your code here
+	t.Run("Test environment extraction", func(t *testing.T) {
+		environment, err := ReadDir("testdata/env")
+
+		require.Equal(t, err, nil, "Error not nil")
+
+		expectedMap := Environment{
+			"BAR": EnvValue{Value: "bar"},
+
+			"EMPTY": EnvValue{Value: ""},
+
+			"FOO": EnvValue{Value: "foo\x00with new line"},
+
+			"HELLO": EnvValue{Value: "\"hello\""},
+
+			"UNSET": EnvValue{NeedRemove: true},
+		}
+
+		require.Equal(t, environment, expectedMap, "Environment differs from expected")
+	})
 }
