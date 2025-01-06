@@ -20,7 +20,7 @@ func init() {
 func main() {
 	flag.Parse()
 	if err := Copy(from, to, offset, limit); err != nil {
-		fmt.Println("Error occurred while copying file")
+		fmt.Printf("Error occurred while copying file, %v", err)
 		return
 	}
 	fmt.Printf("File %s successfully copied to file %s\n", from, to)
