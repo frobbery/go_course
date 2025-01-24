@@ -2,8 +2,9 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"io"
+	"io"
+	"log"
 	"net"
 	"time"
 )
@@ -56,7 +57,7 @@ func (c *client) Send() error {
 		n, err := c.in.Read(tmp)
 		if err != nil {
 			if errors.Is(err, io.EOF) {
-				fmt.Println("Stop reading")
+				log.Println("Stop reading")
 				return nil
 			}
 			return err

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"time"
@@ -17,8 +17,7 @@ func main() {
 	client := NewTelnetClient(args[2]+":"+args[3], *timeout, os.Stdin, os.Stdout)
 	err := client.Connect()
 	if err != nil {
-		// panic("error coonecting to " + args[2] + ":" + args[3])
-		fmt.Println("Could not connect to host")
+		log.Println("Could not connect to host")
 		return
 	}
 	defer client.Close()
@@ -28,7 +27,7 @@ func main() {
 		defer cancelCtx()
 		err := client.Send()
 		if err != nil {
-			fmt.Println("Error while writing to host")
+			log.Println("Error while writing to host")
 		}
 	}()
 
@@ -36,7 +35,7 @@ func main() {
 		defer cancelCtx()
 		err := client.Receive()
 		if err != nil {
-			fmt.Println("Error while reading from host")
+			log.Println("Error while reading from host")
 		}
 	}()
 
