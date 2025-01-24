@@ -34,19 +34,15 @@ func main() {
 
 	go func() {
 		readFromIn(client)
-
 		wg.Done()
 	}()
 
 	go func() {
 		writeToOut(client)
-
-		wg.Done()
 	}()
 
 	go func() {
 		listenForSignal()
-
 		wg.Done()
 	}()
 
