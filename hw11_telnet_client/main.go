@@ -43,7 +43,6 @@ func main() {
 
 	go func() {
 		listenForSignal()
-		wg.Done()
 	}()
 
 	wg.Wait()
