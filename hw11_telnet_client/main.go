@@ -2,28 +2,24 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
 	"time"
-
-	//nolint:depguard
-	"github.com/spf13/pflag"
 )
 
 func main() {
-	var timeout time.Duration
-	pflag.DurationVar(&timeout, "timeout", 10*time.Second, "connection timeout")
-	pflag.Parse()
+	timeout := flag.Duration("timeout", 10*time.Second, "connection timeout")
+	flag.Parse()
 
 	args := os.Args
 
-	client := NewTelnetClient(args[1]+":"+args[2], timeout, os.Stdin, os.Stdout)
+	client := NewTelnetClient(args[1]+":"+args[2], *timeout, os.Stdin, os.Stdout)
 	defer client.Close()
 	err := client.Connect()
 	if err != nil {
 		fmt.Println("Could not connect to host")
-
 		return
 	}
 
