@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"net"
 	"time"
@@ -31,29 +33,39 @@ func (c *client) Connect() error {
 }
 
 func (c *client) Receive() error {
-	bytes := make([]byte, 0)
-	_, err := c.con.Read(bytes)
-	if err != nil {
-		return err
-	}
-	_, err = c.out.Write(bytes)
-	if err != nil {
-		return err
+	tmp := make([]byte, 256)
+	for {
+		n, err := c.con.Read(tmp)
+		if err != nil {
+			if !errors.Is(err, io.EOF) {
+				return err
+			}
+			break
+		}
+		_, err = c.out.Write(tmp[:n])
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func (c *client) Send() error {
-	bytes := make([]byte, 0)
-	_, err := c.in.Read(bytes)
-	if err != nil {
-		return err
+	tmp := make([]byte, 256)
+	for {
+		n, err := c.in.Read(tmp)
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				fmt.Println("Stop reading")
+				return nil
+			}
+			return err
+		}
+		_, err = c.con.Write(tmp[:n])
+		if err != nil {
+			return err
+		}
 	}
-	_, err = c.con.Write(bytes)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (c *client) Close() error {
@@ -61,8 +73,10 @@ func (c *client) Close() error {
 }
 
 func NewTelnetClient(address string, timeout time.Duration, in io.ReadCloser, out io.Writer) TelnetClient {
-	return &client{address: address,
+	return &client{
+		address: address,
 		timeout: timeout,
 		in:      in,
-		out: out}
+		out:     out,
+	}
 }
