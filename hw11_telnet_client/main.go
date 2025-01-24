@@ -72,7 +72,7 @@ func readFromIn(client TelnetClient) {
 		if !scanner.Scan() {
 			fmt.Println("EOF in stdin")
 
-			break
+			//break
 		}
 	}
 }
