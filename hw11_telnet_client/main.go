@@ -14,12 +14,12 @@ func main() {
 	flag.Parse()
 
 	args := os.Args
-
 	client := NewTelnetClient(args[1]+":"+args[2], *timeout, os.Stdin, os.Stdout)
 	err := client.Connect()
 	if err != nil {
-		fmt.Println("Could not connect to host")
-		return
+		panic("error coonecting to " + args[1] + ":" + args[2])
+		// fmt.Println("Could not connect to host")
+		// return
 	}
 	defer client.Close()
 
