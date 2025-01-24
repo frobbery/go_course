@@ -16,7 +16,7 @@ func main() {
 	args := os.Args
 
 	client := NewTelnetClient(args[1]+":"+args[2], *timeout, os.Stdin, os.Stdout)
-	defer client.Close()
+	// defer client.Close()
 	err := client.Connect()
 	if err != nil {
 		fmt.Println("Could not connect to host")
