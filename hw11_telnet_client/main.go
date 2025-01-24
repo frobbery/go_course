@@ -1,11 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
-	"sync"
-	"syscall"
 	"time"
 
 	//nolint:depguard
@@ -20,7 +19,7 @@ func main() {
 	args := os.Args
 
 	client := NewTelnetClient(args[1]+":"+args[2], timeout, os.Stdin, os.Stdout)
-
+	defer client.Close()
 	err := client.Connect()
 	if err != nil {
 		fmt.Println("Could not connect to host")
@@ -28,46 +27,29 @@ func main() {
 		return
 	}
 
-	wg := sync.WaitGroup{}
-
-	wg.Add(1)
-
+	ctx, cancelCtx := context.WithCancel(context.Background())
 	go func() {
-		readFromIn(client)
-		wg.Done()
+		defer cancelCtx()
+		err := client.Send()
+		if err != nil {
+			fmt.Println("Error while writing to host")
+		}
 	}()
 
 	go func() {
-		writeToOut(client)
+		defer cancelCtx()
+		err := client.Receive()
+		if err != nil {
+			fmt.Println("Error while reading from host")
+		}
 	}()
 
-	go func() {
-		listenForSignal()
-	}()
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt)
 
-	wg.Wait()
-}
-
-func readFromIn(client TelnetClient) {
-	err := client.Send()
-	if err != nil {
-		fmt.Println("Error while reading from host")
-	}
-}
-
-func writeToOut(client TelnetClient) {
-	err := client.Receive()
-	if err != nil {
-		fmt.Println("Error while reading from host")
-	}
-}
-
-func listenForSignal() {
-	c := make(chan os.Signal, 1)
-
-	signal.Notify(c, syscall.SIGINT)
-
-	for range c {
-		return
+	select {
+	case <-sigChan:
+	case <-ctx.Done():
+		close(sigChan)
 	}
 }
