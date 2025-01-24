@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"os/signal"
@@ -55,31 +54,16 @@ func main() {
 }
 
 func readFromIn(client TelnetClient) {
-	scanner := bufio.NewScanner(os.Stdin)
-
-	for {
-		err := client.Send()
-		if err != nil {
-			fmt.Println("Error while reading from host")
-			break
-		}
-
-		if !scanner.Scan() {
-			fmt.Println("EOF in stdin")
-
-			break
-		}
+	err := client.Send()
+	if err != nil {
+		fmt.Println("Error while reading from host")
 	}
 }
 
 func writeToOut(client TelnetClient) {
-	for {
-		err := client.Receive()
-		if err != nil {
-			fmt.Println("Error while reading from host")
-
-			break
-		}
+	err := client.Receive()
+	if err != nil {
+		fmt.Println("Error while reading from host")
 	}
 }
 
