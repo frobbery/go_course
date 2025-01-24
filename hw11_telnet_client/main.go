@@ -2,33 +2,27 @@ package main
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"os"
 	"os/signal"
-	"strconv"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
+
+	//nolint:depguard
+	"github.com/spf13/pflag"
 )
 
 func main() {
-	timeOutFlag := flag.String("timeout", "0s", "connection timeout")
-	flag.Parse()
-
-	timeout, err := strconv.Atoi(strings.Split(*timeOutFlag, "s")[0])
-	if err != nil {
-		fmt.Println("Wrong timeout format")
-
-		return
-	}
+	var timeout time.Duration
+	pflag.DurationVar(&timeout, "timeout", 10*time.Second, "connection timeout")
+	pflag.Parse()
 
 	args := os.Args
 
-	client := NewTelnetClient(args[1]+":"+args[2], time.Duration(timeout), os.Stdin, os.Stdout)
+	client := NewTelnetClient(args[1]+":"+args[2], timeout, os.Stdin, os.Stdout)
 
-	err = client.Connect()
+	err := client.Connect()
 	if err != nil {
 		fmt.Println("Could not connect to host")
 
@@ -67,12 +61,13 @@ func readFromIn(client TelnetClient) {
 		err := client.Send()
 		if err != nil {
 			fmt.Println("Error while reading from host")
+			break
 		}
 
 		if !scanner.Scan() {
 			fmt.Println("EOF in stdin")
 
-			//break
+			break
 		}
 	}
 }
