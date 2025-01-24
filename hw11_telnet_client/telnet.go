@@ -32,7 +32,7 @@ func (c *client) Connect() error {
 	return nil
 }
 
-func (c client) Receive() error {
+func (c *client) Receive() error {
 	tmp := make([]byte, 256)
 	for {
 		n, err := c.con.Read(tmp)
@@ -50,7 +50,7 @@ func (c client) Receive() error {
 	return nil
 }
 
-func (c client) Send() error {
+func (c *client) Send() error {
 	tmp := make([]byte, 256)
 	for {
 		n, err := c.in.Read(tmp)
@@ -68,7 +68,7 @@ func (c client) Send() error {
 	}
 }
 
-func (c client) Close() error {
+func (c *client) Close() error {
 	return c.con.Close()
 }
 
