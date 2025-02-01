@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"testing"
 
+	//nolint:depguard
 	"github.com/stretchr/testify/require"
 )
 
