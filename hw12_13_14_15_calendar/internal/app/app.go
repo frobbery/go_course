@@ -2,15 +2,23 @@ package app
 
 import (
 	"context"
+	"github.com/frobbery/go_course/hw12_13_14_15_calendar/internal/storage"
 )
 
 type App struct { // TODO
 }
 
-type Logger interface { // TODO
+type Logger interface {
+	Info(msg string)
+	Debug(msg string)
+	Error(msg string)
 }
 
-type Storage interface { // TODO
+type Storage interface {
+	Connect(ctx context.Context, dsn string) error
+	Migrate(ctx context.Context, migrate string) error
+	Close() error
+	storage.CalendarRepo
 }
 
 func New(logger Logger, storage Storage) *App {

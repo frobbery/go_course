@@ -1,5 +1,11 @@
 [logger]
 level = "INFO"
 
-# TODO
-# ...
+[db]
+in_memory = true
+dsn = "host=localhost port=5432 user=admin password=admin dbname=event sslmode=disable"
+migration = "migrations"
+
+[http]
+host = "localhost"
+port = "8080"
