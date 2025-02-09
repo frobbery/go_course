@@ -8,25 +8,25 @@ import (
 type logLevel int
 
 const (
-	error logLevel = iota
-	info	
-	debug	 
+	errorLog = iota
+	info
+	debug
 )
 
 type Logger struct {
-	level logLevel
+	level  logLevel
 	logger *log.Logger
 }
 
 func New(level string) *Logger {
-	var logger = Logger{}
+	logger := Logger{}
 	switch level {
-	case "DEBUG" :
+	case "DEBUG":
 		logger.level = debug
-	case "INFO" :
+	case "INFO":
 		logger.level = info
-	case "ERROR" :
-		logger.level = error
+	case "ERROR":
+		logger.level = errorLog
 	default:
 		logger.level = info
 	}

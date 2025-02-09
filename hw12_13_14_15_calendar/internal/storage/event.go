@@ -2,8 +2,8 @@ package storage
 
 import (
 	"context"
-	"time"
 	"errors"
+	"time"
 )
 
 var (
@@ -13,27 +13,41 @@ var (
 )
 
 type Event struct {
-	Id int64
+	ID int64
+
 	Name string
+
 	DateTime time.Time
+
 	EndDateTime time.Time
+
 	Description string
-	UserId int64
+
+	UserID int64
+
 	SendBefore time.Time
 }
 
 type Notification struct {
-	EventId int64
+	EventID int64
+
 	Name string
+
 	EventDate time.Time
-	UserToSendId int64
+
+	UserToSendID int64
 }
 
 type CalendarRepo interface {
-	CreateEvent(ctx context.Context, event Event) (eventId int64, err error)
-	UpdateEvent(ctx context.Context, eventId int64, event Event) (err error)
-	DeleteEvent(ctx context.Context, eventId int64) (err error)
+	CreateEvent(ctx context.Context, event Event) (eventID int64, err error)
+
+	UpdateEvent(ctx context.Context, eventID int64, event Event) (err error)
+
+	DeleteEvent(ctx context.Context, eventID int64) (err error)
+
 	EventsForDay(ctx context.Context, day time.Time) (events []Event, err error)
+
 	EventsForWeek(ctx context.Context, firstDayOfWeek time.Time) (events []Event, err error)
-	EventsForMonth(ctx context.Context, firstDayOfMonth time.Time) (events []Event,err error)
+
+	EventsForMonth(ctx context.Context, firstDayOfMonth time.Time) (events []Event, err error)
 }

@@ -9,10 +9,15 @@ import (
 	"syscall"
 	"time"
 
+	//nolint:depguard
 	"github.com/frobbery/go_course/hw12_13_14_15_calendar/internal/app"
+	//nolint:depguard
 	"github.com/frobbery/go_course/hw12_13_14_15_calendar/internal/logger"
+	//nolint:depguard
 	internalhttp "github.com/frobbery/go_course/hw12_13_14_15_calendar/internal/server/http"
+	//nolint:depguard
 	memorystorage "github.com/frobbery/go_course/hw12_13_14_15_calendar/internal/storage/memory"
+	//nolint:depguard
 	sqlstorage "github.com/frobbery/go_course/hw12_13_14_15_calendar/internal/storage/sql"
 )
 
@@ -35,7 +40,7 @@ func main() {
 		panic("could not init config: " + err.Error())
 	}
 
-	logg := logger.New(config.Logger.Level)
+	logger := logger.New(config.Logger.Level)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
@@ -47,13 +52,13 @@ func main() {
 	}
 	defer func() {
 		if err := storage.Close(); err != nil {
-			logg.Error("cannot close psql connection", err)
+			logger.Error("cannot close psql connection: " + err.Error())
 		}
 	}()
 
-	calendar := app.New(logg, storage)
+	calendar := app.New(logger, storage)
 
-	server := internalhttp.NewServer(logg, calendar)
+	server := internalhttp.NewServer(logger, calendar, config.HTTP.Host, config.HTTP.Port)
 
 	go func() {
 		<-ctx.Done()
@@ -62,29 +67,30 @@ func main() {
 		defer cancel()
 
 		if err := server.Stop(ctx); err != nil {
-			logg.Error("failed to stop http server: " + err.Error())
+			logger.Error("failed to stop http server: " + err.Error())
 		}
 	}()
 
-	logg.Info("calendar is running...")
+	logger.Info("calendar is running...")
 
 	if err := server.Start(ctx); err != nil {
-		logg.Error("failed to start http server: " + err.Error())
+		logger.Error("failed to start http server: " + err.Error())
 		cancel()
 		os.Exit(1) //nolint:gocritic
 	}
 }
 
-func initStorage(ctx context.Context, dbConfig DbConfig) (storage app.Storage, err error) {
+func initStorage(ctx context.Context, dbConfig DBConfig) (storage app.Storage, err error) {
 	if dbConfig.InMemory {
 		storage = memorystorage.New()
 	} else {
 		storage = sqlstorage.New()
 	}
 	if err := storage.Connect(ctx, dbConfig.DSN); err != nil {
-		return nil, fmt.Errorf("cannot connect to psql: %v", err)
+		return nil, fmt.Errorf("cannot connect to psql: %w", err)
 	}
 	if err := storage.Migrate(ctx, dbConfig.Migration); err != nil {
-		return nil, fmt.Errorf("cannot migrate: %v", err)
+		return nil, fmt.Errorf("cannot migrate: %w", err)
 	}
+	return storage, nil
 }

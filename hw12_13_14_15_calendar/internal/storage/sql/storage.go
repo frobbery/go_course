@@ -6,14 +6,17 @@ import (
 	"fmt"
 	"time"
 
+	//nolint:depguard
 	"github.com/frobbery/go_course/hw12_13_14_15_calendar/internal/app"
+	//nolint:depguard
 	"github.com/frobbery/go_course/hw12_13_14_15_calendar/internal/storage"
-	"github.com/pressly/goose/v3"
-
+	//nolint:depguard
 	_ "github.com/jackc/pgx/v4/stdlib"
+	//nolint:depguard
+	"github.com/pressly/goose/v3"
 )
 
-type sqlStorage struct { 
+type sqlStorage struct {
 	db *sql.DB
 }
 
@@ -30,9 +33,10 @@ func (s *sqlStorage) Connect(ctx context.Context, dsn string) (err error) {
 }
 
 ///go:embed migrations/*.sql
+//nolint:gocritic
 //var embedMigrations embed.FS
 
-func (s *sqlStorage) Migrate(ctx context.Context, migrate string) (err error) {
+func (s *sqlStorage) Migrate(_ context.Context, migrate string) (err error) {
 	//	goose.SetBaseFS(embedMigrations)
 
 	if err := goose.SetDialect("postgres"); err != nil {
@@ -50,7 +54,7 @@ func (s *sqlStorage) Close() error {
 	return s.db.Close()
 }
 
-func (s *sqlStorage) CreateEvent(ctx context.Context, event storage.Event) (eventId int64, err error) {
+func (s *sqlStorage) CreateEvent(ctx context.Context, event storage.Event) (eventID int64, err error) {
 	eventsForDay, err := s.EventsForDay(ctx, event.DateTime)
 	if err != nil {
 		return -1, err
@@ -58,20 +62,22 @@ func (s *sqlStorage) CreateEvent(ctx context.Context, event storage.Event) (even
 	if len(eventsForDay) != 0 {
 		return -1, storage.ErrDateBusy
 	}
+	//nolint:lll
 	query := `insert into event(name, date_time, end_date_time, description, user_id, send_before) values($1, $2, $3, $4, $5, $6)`
-	result, err := s.db.ExecContext(ctx, query, event.Name, event.DateTime, event.EndDateTime, event.Description, event.UserId, event.SendBefore)
+	//nolint:lll
+	result, err := s.db.ExecContext(ctx, query, event.Name, event.DateTime, event.EndDateTime, event.Description, event.UserID, event.SendBefore)
 	if err != nil {
- 		return 0, nil
+		return 0, err
 	}
-	eventId, err = result.LastInsertId() 
-	return eventId, err
+	eventID, err = result.LastInsertId()
+	return eventID, err
 }
 
-func (s *sqlStorage) UpdateEvent(ctx context.Context, eventId int64, event storage.Event) (err error) {
+func (s *sqlStorage) UpdateEvent(ctx context.Context, eventID int64, event storage.Event) (err error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id FROM event
 		where id = $1
-	`, eventId)
+	`, eventID)
 	if err != nil {
 		return fmt.Errorf("cannot select: %w", err)
 	}
@@ -79,18 +85,21 @@ func (s *sqlStorage) UpdateEvent(ctx context.Context, eventId int64, event stora
 	if !rows.Next() {
 		return storage.ErrEventNotFound
 	}
-	query := `update event set name = $2, date_time = $3, end_date_time = $4, description = $5, user_id = $6, send_before = $7 where id = $1`
-	_, err = s.db.ExecContext(ctx, query, eventId, event.Name, event.DateTime, event.EndDateTime, event.Description, event.UserId, event.SendBefore)
+	query := `update event set name = $2, date_time = $3, end_date_time = $4,
+	 description = $5, user_id = $6, send_before = $7 where id = $1`
+	//nolint:lll
+	_, err = s.db.ExecContext(ctx, query, eventID, event.Name, event.DateTime, event.EndDateTime, event.Description, event.UserID, event.SendBefore)
 	return err
 }
 
-func (s *sqlStorage) DeleteEvent(ctx context.Context, eventId int64) (err error) {
+func (s *sqlStorage) DeleteEvent(ctx context.Context, eventID int64) (err error) {
 	query := `delete from event where id = $1`
-	_, err = s.db.ExecContext(ctx, query, eventId)
+	_, err = s.db.ExecContext(ctx, query, eventID)
 	return err
 }
 
-func(s *sqlStorage) getEventsBetweenTwoDates(ctx context.Context, startDate time.Time, endDate time.Time) (events []storage.Event, err error) {
+//nolint:lll
+func (s *sqlStorage) getEventsBetweenTwoDates(ctx context.Context, startDate time.Time, endDate time.Time) (events []storage.Event, err error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, name, date_time, end_date_time, description, user_id, send_before FROM event
 		where tstzrange($1, $2) @> date_time
@@ -108,19 +117,19 @@ func(s *sqlStorage) getEventsBetweenTwoDates(ctx context.Context, startDate time
 		var sendBefore sql.NullTime
 
 		if err := rows.Scan(
-			&e.Id,
+			&e.ID,
 			&e.Name,
 			&e.DateTime,
 			&e.EndDateTime,
 			&description,
-			&e.UserId,
+			&e.UserID,
 			&sendBefore,
 		); err != nil {
 			return nil, fmt.Errorf("cannot scan: %w", err)
 		}
 
 		if description.Valid {
-			e.Description = e.Description
+			e.Description = description.String
 		}
 		events = append(events, e)
 	}
@@ -128,13 +137,13 @@ func(s *sqlStorage) getEventsBetweenTwoDates(ctx context.Context, startDate time
 }
 
 func (s *sqlStorage) EventsForDay(ctx context.Context, day time.Time) (events []storage.Event, err error) {
-	return s.getEventsBetweenTwoDates(ctx, day, day.Add(time.Duration(time.Hour * 24)));
+	return s.getEventsBetweenTwoDates(ctx, day, day.Add(time.Hour*24))
 }
 
 func (s *sqlStorage) EventsForWeek(ctx context.Context, day time.Time) (events []storage.Event, err error) {
-	return s.getEventsBetweenTwoDates(ctx, day, day.Add(time.Duration(time.Hour * 24 * 7)));
+	return s.getEventsBetweenTwoDates(ctx, day, day.Add(time.Hour*24*7))
 }
 
 func (s *sqlStorage) EventsForMonth(ctx context.Context, day time.Time) (events []storage.Event, err error) {
-	return s.getEventsBetweenTwoDates(ctx, day, day.Add(time.Duration(time.Hour * 24 * 30)));
+	return s.getEventsBetweenTwoDates(ctx, day, day.Add(time.Hour*24*30))
 }

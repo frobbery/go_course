@@ -1,5 +1,6 @@
 package main
 
+//nolint:depguard
 import "github.com/BurntSushi/toml"
 
 func Read(fpath string) (c Config, err error) {
@@ -8,24 +9,24 @@ func Read(fpath string) (c Config, err error) {
 }
 
 type Config struct {
-	Logger	LoggerConfig
-	DB		DbConfig
-	HTTP	HttpConfig
+	Logger LoggerConfig
+	DB     DBConfig
+	HTTP   HTTPConfig
 }
 
 type LoggerConfig struct {
 	Level string
 }
 
-type DbConfig struct {
-	InMemory bool
+type DBConfig struct {
+	InMemory  bool
 	DSN       string
 	Migration string
 }
 
-type HttpConfig struct {
+type HTTPConfig struct {
 	Host string
-	Prot string
+	Port string
 }
 
 func NewConfig() Config {
