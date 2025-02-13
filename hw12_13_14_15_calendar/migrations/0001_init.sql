@@ -1,10 +1,10 @@
 -- +goose Up
-CREATE table user (
+CREATE table "user" (
     id      serial primary key,
     login   text
 );
 
-INSERT INTO user (login, description, meta, updated_at)
+INSERT INTO "user" (login)
 VALUES
     ('admin');
 
@@ -15,10 +15,10 @@ CREATE table event (
 	end_date_time   timestamptz not null,
 	description     text,
 	user_id         integer not null,
-    CONSTRAINT      event_user_id_fk FOREIGN KEY(user_id) REFERENCES user(id),
+    CONSTRAINT      event_user_id_fk FOREIGN KEY(user_id) REFERENCES "user"(id),
 	send_before     timestamptz
 );
 
 -- +goose Down
 drop table event;
-drop table user;
+drop table "user";
